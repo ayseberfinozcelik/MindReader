@@ -10,9 +10,9 @@
 
 namespace {
 
-constexpr int kBaslangicAlt = 1;
-constexpr int kBaslangicUst = 1000;
-constexpr int kTeorikAdimLimiti = 11;
+constexpr int kLowerBound = 1;
+constexpr int kUpperBound = 1000;
+constexpr int kTheoreticalStepLimit = 11;
 
 const char* logo() {
     return R"(
@@ -24,8 +24,8 @@ const char* logo() {
 )";
 }
 
-char ilk_karakter(const std::string& metin) {
-    for (char ch : metin) {
+char first_non_space_char(const std::string& text) {
+    for (char ch : text) {
         if (!std::isspace(static_cast<unsigned char>(ch))) {
             return static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
         }
@@ -33,118 +33,120 @@ char ilk_karakter(const std::string& metin) {
     return '\0';
 }
 
-char secim_al(const std::string& soru, const std::string& izinli) {
+char read_choice(const std::string& prompt, const std::string& allowed) {
     while (true) {
-        std::cout << soru;
-        std::string giris;
-        if (!std::getline(std::cin, giris)) {
+        std::cout << prompt;
+        std::string input;
+        if (!std::getline(std::cin, input)) {
             return '\0';
         }
-        char secim = ilk_karakter(giris);
-        if (izinli.find(secim) != std::string::npos) {
-            return secim;
+
+        char choice = first_non_space_char(input);
+        if (allowed.find(choice) != std::string::npos) {
+            return choice;
         }
-        std::cout << "Geçersiz giriş. Tekrar dene.\n";
+
+        std::cout << "Invalid input. Please try again.\n";
     }
 }
 
-int rastgele_tahmin(int alt, int ust, std::mt19937& rng, int onceki) {
-    int orta = mind_reader::next_guess(alt, ust);
-    int genislik = ust - alt + 1;
-    if (genislik <= 3) {
-        return orta;
+int randomized_guess(int low, int high, std::mt19937& rng, int previous_guess) {
+    int midpoint = mind_reader::next_guess(low, high);
+    int width = high - low + 1;
+    if (width <= 3) {
+        return midpoint;
     }
 
-    int sapma = std::max(1, genislik / 6);
-    std::uniform_int_distribution<int> dagilim(-sapma, sapma);
-    int tahmin = std::clamp(orta + dagilim(rng), alt, ust);
+    int jitter = std::max(1, width / 6);
+    std::uniform_int_distribution<int> dist(-jitter, jitter);
+    int guess = std::clamp(midpoint + dist(rng), low, high);
 
-    if (tahmin == onceki && alt != ust) {
-        tahmin = (tahmin < ust) ? tahmin + 1 : tahmin - 1;
+    if (guess == previous_guess && low != high) {
+        guess = (guess < high) ? guess + 1 : guess - 1;
     }
-    return tahmin;
+    return guess;
 }
 
 }  // namespace
 
 int main() {
     std::cout << logo() << "\n";
-    std::cout << "Aklından 1 ile 1000 arasında bir sayı tut. Bana söyleme.\n";
-    std::cout << "Hazırsan ENTER'a bas: ";
+    std::cout << "Think of a number between 1 and 1000. Do not tell me.\n";
+    std::cout << "Press ENTER when you are ready: ";
 
-    std::string satir;
-    if (!std::getline(std::cin, satir)) {
-        std::cout << "\nGiriş sonlandı. Oyun kapatılıyor.\n";
+    std::string line;
+    if (!std::getline(std::cin, line)) {
+        std::cout << "\nInput closed. Game is ending.\n";
         return 0;
     }
 
-    char mod = secim_al(
-        "Mod seçimi: [1] Klasik İkili Arama, [2] Rastgele Pivot (önerilen): ",
+    char mode = read_choice(
+        "Mode: [1] Classic Binary Search, [2] Random Pivot (recommended): ",
         "12");
-    if (mod == '\0') {
-        std::cout << "\nGiriş sonlandı. Oyun kapatılıyor.\n";
+    if (mode == '\0') {
+        std::cout << "\nInput closed. Game is ending.\n";
         return 0;
     }
 
-    int alt = kBaslangicAlt;
-    int ust = kBaslangicUst;
-    int adim = 0;
-    int onceki_tahmin = -1;
-    std::vector<std::tuple<int, int, int, int>> gecmis;
+    int low = kLowerBound;
+    int high = kUpperBound;
+    int steps = 0;
+    int previous_guess = -1;
+    std::vector<std::tuple<int, int, int, int>> history;
 
     std::random_device rd;
     std::mt19937 rng(rd());
 
     while (true) {
-        if (alt > ust) {
-            std::cout << "\nİpuçların çelişti, bu aralıkta sayı kalmadı.\n";
+        if (low > high) {
+            std::cout << "\nYour hints are contradictory. No number remains in range.\n";
             return 0;
         }
 
-        int tahmin = (mod == '1') ? mind_reader::next_guess(alt, ust)
-                                  : rastgele_tahmin(alt, ust, rng, onceki_tahmin);
-        onceki_tahmin = tahmin;
+        int guess = (mode == '1') ? mind_reader::next_guess(low, high)
+                                  : randomized_guess(low, high, rng, previous_guess);
+        previous_guess = guess;
 
-        char yanit = secim_al(
-            "Tahminim " + std::to_string(tahmin) +
-                ". Büyükse [b], küçükse [k], doğruysa [d], geri almak için [u]: ",
-            "bkdu");
-        if (yanit == '\0') {
-            std::cout << "\nGiriş sonlandı. Oyun kapatılıyor.\n";
+        char hint = read_choice(
+            "My guess is " + std::to_string(guess) +
+                ". If your number is higher [h], lower [l], correct [c], undo [u]: ",
+            "hlcu");
+        if (hint == '\0') {
+            std::cout << "\nInput closed. Game is ending.\n";
             return 0;
         }
 
-        if (yanit == 'u') {
-            if (gecmis.empty()) {
-                std::cout << "Geri alınacak adım yok.\n";
+        if (hint == 'u') {
+            if (history.empty()) {
+                std::cout << "There is no step to undo.\n";
             } else {
-                auto [eski_alt, eski_ust, eski_adim, eski_tahmin] = gecmis.back();
-                gecmis.pop_back();
-                alt = eski_alt;
-                ust = eski_ust;
-                adim = eski_adim;
-                onceki_tahmin = eski_tahmin;
-                std::cout << "Son adım geri alındı.\n";
+                auto [old_low, old_high, old_steps, old_prev_guess] = history.back();
+                history.pop_back();
+                low = old_low;
+                high = old_high;
+                steps = old_steps;
+                previous_guess = old_prev_guess;
+                std::cout << "Last step undone.\n";
             }
             continue;
         }
 
-        adim++;
-        if (yanit == 'd') {
-            std::cout << "\nBuldum! Tuttuğun sayı " << tahmin << ". "
-                      << adim << " tahminde yakaladım.\n";
-            if (mod == '1' && adim <= kTeorikAdimLimiti) {
-                std::cout << "İkili arama ile minimuma yakın adımda sonuç.\n";
+        steps++;
+        if (hint == 'c') {
+            std::cout << "\nFound it! Your number is " << guess << ". "
+                      << "I got it in " << steps << " guesses.\n";
+            if (mode == '1' && steps <= kTheoreticalStepLimit) {
+                std::cout << "Binary search power: near-minimum number of steps.\n";
             }
-            if (mod == '2') {
-                std::cout << "Rastgele pivot ile daha sürprizli akış.\n";
+            if (mode == '2') {
+                std::cout << "Random pivot mode gave a more surprising flow.\n";
             }
             return 0;
         }
 
-        gecmis.push_back({alt, ust, adim - 1, onceki_tahmin});
-        mind_reader::Range yeni = mind_reader::apply_hint(alt, ust, tahmin, yanit);
-        alt = yeni.low;
-        ust = yeni.high;
+        history.push_back({low, high, steps - 1, previous_guess});
+        mind_reader::Range updated = mind_reader::apply_hint(low, high, guess, hint);
+        low = updated.low;
+        high = updated.high;
     }
 }

@@ -1,34 +1,34 @@
 # MindReader
 
-Bu projede roller değişiyor: kullanıcı bir sayı tutuyor, bilgisayar ikili arama
-mantığıyla sayıyı az adımda buluyor.
+In this project, roles are reversed: the player thinks of a number, and the
+computer finds it quickly using search strategy.
 
-Bu sürüm C++ ile yazıldı.
+This version is written in C++.
 
-## Oyun Akışı
+## Game Flow
 
-1. Program senden `1-1000` arası bir sayı tutmanı ister.
-2. Mod seçersin: `1` = Klasik İkili Arama (garantili hızlı), `2` = Rastgele Pivot (daha az tekrar eden tahminler).
-3. Bilgisayar tahmin eder.
-4. Sen şu şekilde cevap verirsin:
-   - `b`: Tuttuğum sayı daha büyük
-   - `k`: Tuttuğum sayı daha küçük
-   - `d`: Doğru tahmin
-   - `u`: Son adımı geri al
-5. Bilgisayar seçilen moda göre aralığı daraltarak sonuca gider.
+1. Think of a number between `1` and `1000`.
+2. Choose mode: `1` = Classic Binary Search, `2` = Random Pivot.
+3. The computer makes a guess.
+4. Respond with:
+   - `h`: My number is higher
+   - `l`: My number is lower
+   - `c`: Correct guess
+   - `u`: Undo last step
+5. The computer narrows the range and keeps guessing.
 
-## Özellikler
+## Features
 
-- Klasik İkili Arama modu (en hızlı)
-- Rastgele Pivot modu (daha sürprizli tahmin akışı)
-- Geçersiz tuşlama kontrolü (`b/k/d` dışında giriş)
-- Yanlış tuşlama için `u` ile son adımı geri alma
-- Çelişkili ipucu tespiti (imkansız aralık oluşursa oyun biter)
-- Başlangıçta ASCII logo
-- GitHub Actions ile otomatik test (sürekli bütünleştirme)
-- İş mantığı (`next_guess`, `update_range`) ayrı modülde olduğu için test edilebilir yapı
+- Classic Binary Search mode (fastest)
+- Random Pivot mode (less repetitive, more surprising flow)
+- Input validation
+- Undo support with `u`
+- Contradiction detection (when no valid number remains)
+- ASCII logo at startup
+- GitHub Actions CI for automated tests
+- Separated logic module (`next_guess`, `apply_hint`) for easy testing
 
-## Çalıştırma
+## Run
 
 ```bash
 make run
@@ -40,7 +40,7 @@ make run
 make test
 ```
 
-## Elle Derleme
+## Manual Build
 
 ```bash
 g++ -std=c++17 -Wall -Wextra -Wpedantic -O2 -Iinclude src/main.cpp src/mind_reader_logic.cpp -o build/mind_reader
