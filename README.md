@@ -8,19 +8,22 @@ Bu surum C++ ile yazildi.
 ## Oyun Akisi
 
 1. Program senden `1-1000` arasi bir sayi tutmani ister.
-2. Bilgisayar ortadaki sayiyi tahmin eder.
-3. Sen su sekilde cevap verirsin:
+2. Mod secersin: `1` = Klasik Binary (garantili hizli), `2` = Rastgele Pivot (daha az tekrar eden tahminler).
+3. Bilgisayar tahmin eder.
+4. Sen su sekilde cevap verirsin:
    - `b`: Tuttugum sayi daha buyuk
    - `k`: Tuttugum sayi daha kucuk
    - `d`: Dogru tahmin
-4. Bilgisayar araligi her adimda ikiye bolerek hizla sonuca gider.
+   - `u`: Son adimi geri al
+5. Bilgisayar secilen moda gore araligi daraltarak sonuca gider.
 
 ## Ozellikler
 
-- Binary Search ile en fazla 10-11 adimda sonucu bulma
+- Klasik Binary Search modu (en hizli)
+- Rastgele Pivot Search modu (daha surprizli tahmin akisi)
 - Gecersiz tuslama kontrolu (`b/k/d` disinda giris)
+- Yanlis tuslama icin `u` ile son adimi geri alma
 - Celiskili/yalan ipucu tespiti (imkansiz aralik olusursa oyun biter)
-- Tek yalan toleransi: Her tahmin 2 kez sorulur; cevaplar farkliysa 3. cevapla cogunluk alinir
 - Baslangicta ASCII logo
 - GitHub Actions ile otomatik test (CI)
 - Is mantigi (`next_guess`, `update_range`) ayri modulde oldugu icin test edilebilir yapi
