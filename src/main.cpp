@@ -63,8 +63,8 @@ int next_guess_randomized(int low, int high, std::mt19937& rng, int last_guess) 
 
 bool prompt_mode(GuessMode& mode) {
     while (true) {
-        std::cout << "Mod secimi: [1] Klasik Binary (en hizli), "
-                  << "[2] Rastgele Pivot (daha surprizli, onerilen): ";
+        std::cout << "Mod seçimi: [1] Klasik İkili Arama (en hızlı), "
+                  << "[2] Rastgele Pivot (daha sürprizli, önerilen): ";
 
         std::string input;
         if (!std::getline(std::cin, input)) {
@@ -81,15 +81,15 @@ bool prompt_mode(GuessMode& mode) {
             return true;
         }
 
-        std::cout << "Gecersiz secim. Lutfen 1 veya 2 gir.\n";
+        std::cout << "Geçersiz seçim. Lütfen 1 veya 2 gir.\n";
     }
 }
 
 bool prompt_hint(int guess, char& hint) {
     while (true) {
         std::cout << "Tahminim " << guess
-                  << ". Daha buyukse [b], daha kucukse [k], dogruysa [d], "
-                     "geri almak icin [u]: ";
+                  << ". Daha büyükse [b], daha küçükse [k], doğruysa [d], "
+                     "geri almak için [u]: ";
 
         std::string input;
         if (!std::getline(std::cin, input)) {
@@ -101,7 +101,7 @@ bool prompt_hint(int guess, char& hint) {
             return true;
         }
 
-        std::cout << "Gecersiz giris. Lutfen sadece b, k, d veya u kullan.\n";
+        std::cout << "Geçersiz giriş. Lütfen sadece b, k, d veya u kullan.\n";
     }
 }
 
@@ -109,18 +109,18 @@ bool prompt_hint(int guess, char& hint) {
 
 int main() {
     std::cout << logo() << "\n";
-    std::cout << "Aklindan 1 ile 1000 arasinda bir sayi tut. Bana soyleme.\n";
-    std::cout << "Hazirsan ENTER'a bas: ";
+    std::cout << "Aklından 1 ile 1000 arasında bir sayı tut. Bana söyleme.\n";
+    std::cout << "Hazırsan ENTER'a bas: ";
 
     std::string dummy;
     if (!std::getline(std::cin, dummy)) {
-        std::cout << "\nGiris sonlandi. Oyun kapatiliyor.\n";
+        std::cout << "\nGiriş sonlandı. Oyun kapatılıyor.\n";
         return 0;
     }
 
     GuessMode mode = GuessMode::Randomized;
     if (!prompt_mode(mode)) {
-        std::cout << "\nGiris sonlandi. Oyun kapatiliyor.\n";
+        std::cout << "\nGiriş sonlandı. Oyun kapatılıyor.\n";
         return 0;
     }
 
@@ -135,8 +135,8 @@ int main() {
 
     while (true) {
         if (low > high) {
-            std::cout << "\nVerdigin ipuclari birbiriyle celisti. Bu aralikta sayi kalmadi.\n";
-            std::cout << "Oyunu yeniden baslatip tekrar deneyelim.\n";
+            std::cout << "\nVerdiğin ipuçları birbiriyle çelişti. Bu aralıkta sayı kalmadı.\n";
+            std::cout << "Oyunu yeniden başlatıp tekrar deneyelim.\n";
             return 0;
         }
 
@@ -147,13 +147,13 @@ int main() {
 
         char hint = '\0';
         if (!prompt_hint(guess, hint)) {
-            std::cout << "\nGiris sonlandi. Oyun kapatiliyor.\n";
+            std::cout << "\nGiriş sonlandı. Oyun kapatılıyor.\n";
             return 0;
         }
 
         if (hint == 'u') {
             if (history.empty()) {
-                std::cout << "Geri alinacak onceki adim yok.\n";
+                std::cout << "Geri alınacak önceki adım yok.\n";
             } else {
                 GameSnapshot previous = history.back();
                 history.pop_back();
@@ -161,19 +161,19 @@ int main() {
                 high = previous.high;
                 attempts = previous.attempts;
                 last_guess = previous.last_guess;
-                std::cout << "Son adim geri alindi.\n";
+                std::cout << "Son adım geri alındı.\n";
             }
             continue;
         }
 
         attempts++;
         if (hint == 'd') {
-            std::cout << "\nBuldum! Sayin " << guess << ". "
-                      << attempts << " tahminde yakaladim.\n";
+            std::cout << "\nBuldum! Tuttuğun sayı " << guess << ". "
+                      << attempts << " tahminde yakaladım.\n";
             if (mode == GuessMode::Binary && attempts <= kTheoreticalMaxSteps) {
-                std::cout << "Iste ikili arama gucu: minimuma yakin adimla sonuc.\n";
+                std::cout << "İşte ikili arama gücü: minimuma yakın adımla sonuç.\n";
             } else if (mode == GuessMode::Randomized) {
-                std::cout << "Rastgele pivot modu ile daha surprizli bir akista buldum.\n";
+                std::cout << "Rastgele pivot modu ile daha sürprizli bir akışta buldum.\n";
             }
             return 0;
         }
@@ -185,11 +185,11 @@ int main() {
             low = updated.low;
             high = updated.high;
         } catch (const std::invalid_argument&) {
-            std::cout << "\nGecersiz bir ipucu algilandi. Oyun bitiyor.\n";
+            std::cout << "\nGeçersiz bir ipucu algılandı. Oyun bitiyor.\n";
             return 0;
         } catch (const std::logic_error&) {
-            std::cout << "\nHey, ipuclari birbiriyle uyusmuyor.\n";
-            std::cout << "Bu akista gecerli bir sayi kalmadi. Oyun bitiyor.\n";
+            std::cout << "\nHey, ipuçları birbiriyle uyuşmuyor.\n";
+            std::cout << "Bu akışta geçerli bir sayı kalmadı. Oyun bitiyor.\n";
             return 0;
         }
     }

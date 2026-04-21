@@ -1,34 +1,34 @@
-# Mind Reader - Tersine Muhendislik Sayi Tahmin Oyunu
+# Zihin Okuyucu - Tersine Mühendislik Sayı Tahmin Oyunu
 
-Bu projede roller degisiyor: kullanici bir sayi tutuyor, bilgisayar Binary Search
-(Ikili Arama) ile sayiyi minimum adimda buluyor.
+Bu projede roller değişiyor: kullanıcı bir sayı tutuyor, bilgisayar ikili arama
+mantığıyla sayıyı az adımda buluyor.
 
-Bu surum C++ ile yazildi.
+Bu sürüm C++ ile yazıldı.
 
-## Oyun Akisi
+## Oyun Akışı
 
-1. Program senden `1-1000` arasi bir sayi tutmani ister.
-2. Mod secersin: `1` = Klasik Binary (garantili hizli), `2` = Rastgele Pivot (daha az tekrar eden tahminler).
+1. Program senden `1-1000` arası bir sayı tutmanı ister.
+2. Mod seçersin: `1` = Klasik İkili Arama (garantili hızlı), `2` = Rastgele Pivot (daha az tekrar eden tahminler).
 3. Bilgisayar tahmin eder.
-4. Sen su sekilde cevap verirsin:
-   - `b`: Tuttugum sayi daha buyuk
-   - `k`: Tuttugum sayi daha kucuk
-   - `d`: Dogru tahmin
-   - `u`: Son adimi geri al
-5. Bilgisayar secilen moda gore araligi daraltarak sonuca gider.
+4. Sen şu şekilde cevap verirsin:
+   - `b`: Tuttuğum sayı daha büyük
+   - `k`: Tuttuğum sayı daha küçük
+   - `d`: Doğru tahmin
+   - `u`: Son adımı geri al
+5. Bilgisayar seçilen moda göre aralığı daraltarak sonuca gider.
 
-## Ozellikler
+## Özellikler
 
-- Klasik Binary Search modu (en hizli)
-- Rastgele Pivot Search modu (daha surprizli tahmin akisi)
-- Gecersiz tuslama kontrolu (`b/k/d` disinda giris)
-- Yanlis tuslama icin `u` ile son adimi geri alma
-- Celiskili/yalan ipucu tespiti (imkansiz aralik olusursa oyun biter)
-- Baslangicta ASCII logo
-- GitHub Actions ile otomatik test (CI)
-- Is mantigi (`next_guess`, `update_range`) ayri modulde oldugu icin test edilebilir yapi
+- Klasik İkili Arama modu (en hızlı)
+- Rastgele Pivot modu (daha sürprizli tahmin akışı)
+- Geçersiz tuşlama kontrolü (`b/k/d` dışında giriş)
+- Yanlış tuşlama için `u` ile son adımı geri alma
+- Çelişkili ipucu tespiti (imkansız aralık oluşursa oyun biter)
+- Başlangıçta ASCII logo
+- GitHub Actions ile otomatik test (sürekli bütünleştirme)
+- İş mantığı (`next_guess`, `update_range`) ayrı modülde olduğu için test edilebilir yapı
 
-## Calistirma
+## Çalıştırma
 
 ```bash
 make run
