@@ -88,7 +88,14 @@ def play() -> None:
 
         guess = next_guess(state.low, state.high)
         state.attempts += 1
-        hint = prompt_hint(guess)
+        try:
+            hint = prompt_hint(guess)
+        except EOFError:
+            print("\nGiris sonlandi. Oyun kapatiliyor.")
+            return
+        except KeyboardInterrupt:
+            print("\nOyun kullanici tarafindan durduruldu.")
+            return
 
         if hint == "e":
             print(
