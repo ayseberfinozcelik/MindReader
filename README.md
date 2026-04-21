@@ -1,4 +1,4 @@
-# Zihin Okuyucu - Tersine Mühendislik Sayı Tahmin Oyunu
+# MindReader
 
 Bu projede roller değişiyor: kullanıcı bir sayı tutuyor, bilgisayar ikili arama
 mantığıyla sayıyı az adımda buluyor.
