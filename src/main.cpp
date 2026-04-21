@@ -29,8 +29,12 @@ char normalize_hint(const std::string& input) {
     return '\0';
 }
 
-bool prompt_hint(int guess, char& hint) {
+bool prompt_hint(int guess, const char* phase, char& hint) {
     while (true) {
+        if (phase != nullptr && phase[0] != '\0') {
+            std::cout << phase << " | ";
+        }
+
         std::cout << "Tahminim " << guess
                   << ". Tuttugun sayi daha buyukse [b], daha kucukse [k], dogruysa [d]: ";
 
@@ -46,6 +50,35 @@ bool prompt_hint(int guess, char& hint) {
 
         std::cout << "Gecersiz giris. Lutfen sadece b, k veya d kullan.\n";
     }
+}
+
+bool prompt_verified_hint(int guess, char& verified_hint, bool& lie_used) {
+    char first = '\0';
+    char second = '\0';
+
+    if (!prompt_hint(guess, "Kontrol 1/2", first)) {
+        return false;
+    }
+    if (!prompt_hint(guess, "Kontrol 2/2", second)) {
+        return false;
+    }
+
+    mind_reader::HintCheckResult pair = mind_reader::verify_two_hints(first, second, lie_used);
+    if (!pair.needs_third) {
+        verified_hint = pair.hint;
+        return true;
+    }
+
+    std::cout << "Ipuclari farkli geldi. Ek bir dogrulama sorusu soruyorum.\n";
+    char third = '\0';
+    if (!prompt_hint(guess, "Dogrulama 3/3", third)) {
+        return false;
+    }
+
+    verified_hint = mind_reader::resolve_third_hint(first, second, third);
+    lie_used = true;
+    std::cout << "Not: 1 kez yanlis ipucu hakki kullanildi.\n";
+    return true;
 }
 
 }  // namespace
@@ -64,6 +97,7 @@ int main() {
     int low = kLowerBound;
     int high = kUpperBound;
     int attempts = 0;
+    bool lie_used = false;
 
     while (true) {
         if (low > high) {
@@ -77,8 +111,17 @@ int main() {
         attempts++;
 
         char hint = '\0';
-        if (!prompt_hint(guess, hint)) {
-            std::cout << "\nGiris sonlandi. Oyun kapatiliyor.\n";
+        try {
+            if (!prompt_verified_hint(guess, hint, lie_used)) {
+                std::cout << "\nGiris sonlandi. Oyun kapatiliyor.\n";
+                return 0;
+            }
+        } catch (const std::invalid_argument&) {
+            std::cout << "\nGecersiz bir ipucu algilandi. Oyun bitiyor.\n";
+            return 0;
+        } catch (const std::logic_error& err) {
+            std::cout << "\n" << err.what() << "\n";
+            std::cout << "Oyun bitiyor.\n";
             return 0;
         }
 
@@ -87,6 +130,9 @@ int main() {
                       << attempts << " tahminde yakaladim.\n";
             if (attempts <= kTheoreticalMaxSteps) {
                 std::cout << "Iste ikili arama gucu: cok az adim, net sonuc.\n";
+            }
+            if (lie_used) {
+                std::cout << "Yine de yakaladim: 1 yanlis ipucunu tolere ettim.\n";
             }
             return 0;
         }

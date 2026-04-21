@@ -20,6 +20,7 @@ Bu surum C++ ile yazildi.
 - Binary Search ile en fazla 10-11 adimda sonucu bulma
 - Gecersiz tuslama kontrolu (`b/k/d` disinda giris)
 - Celiskili/yalan ipucu tespiti (imkansiz aralik olusursa oyun biter)
+- Tek yalan toleransi: Her tahmin 2 kez sorulur; cevaplar farkliysa 3. cevapla cogunluk alinir
 - Baslangicta ASCII logo
 - GitHub Actions ile otomatik test (CI)
 - Is mantigi (`next_guess`, `update_range`) ayri modulde oldugu icin test edilebilir yapi

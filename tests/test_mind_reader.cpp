@@ -44,6 +44,42 @@ void test_inconsistent_hints_raise_error() {
     expect_true(threw, "inconsistent hint should throw logic_error");
 }
 
+void test_verify_two_hints_returns_direct_hint_when_matching() {
+    mind_reader::HintCheckResult result = mind_reader::verify_two_hints('b', 'b', false);
+    expect_true(result.needs_third == false, "matching hints should not need a third answer");
+    expect_true(result.hint == 'b', "matching hints should resolve to that hint");
+}
+
+void test_verify_two_hints_requests_third_when_different() {
+    mind_reader::HintCheckResult result = mind_reader::verify_two_hints('b', 'k', false);
+    expect_true(result.needs_third == true, "different hints should need a third answer");
+}
+
+void test_verify_two_hints_throws_when_lie_budget_used() {
+    bool threw = false;
+    try {
+        (void)mind_reader::verify_two_hints('b', 'k', true);
+    } catch (const std::logic_error&) {
+        threw = true;
+    }
+    expect_true(threw, "second mismatch after lie usage should throw logic_error");
+}
+
+void test_resolve_third_hint_uses_majority() {
+    char hint = mind_reader::resolve_third_hint('b', 'k', 'b');
+    expect_true(hint == 'b', "majority hint should win in 3-way validation");
+}
+
+void test_resolve_third_hint_throws_on_three_way_mismatch() {
+    bool threw = false;
+    try {
+        (void)mind_reader::resolve_third_hint('b', 'k', 'd');
+    } catch (const std::logic_error&) {
+        threw = true;
+    }
+    expect_true(threw, "all-different answers should throw logic_error");
+}
+
 }  // namespace
 
 int main() {
@@ -52,6 +88,11 @@ int main() {
     test_update_range_for_lower_hint();
     test_update_range_for_exact_hint();
     test_inconsistent_hints_raise_error();
+    test_verify_two_hints_returns_direct_hint_when_matching();
+    test_verify_two_hints_requests_third_when_different();
+    test_verify_two_hints_throws_when_lie_budget_used();
+    test_resolve_third_hint_uses_majority();
+    test_resolve_third_hint_throws_on_three_way_mismatch();
 
     if (failures > 0) {
         std::cerr << failures << " test(s) failed.\n";
