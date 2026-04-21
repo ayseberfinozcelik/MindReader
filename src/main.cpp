@@ -3,27 +3,16 @@
 #include <iostream>
 #include <random>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "mind_reader_logic.hpp"
 
 namespace {
 
-constexpr int kLowerBound = 1;
-constexpr int kUpperBound = 1000;
-constexpr int kTheoreticalMaxSteps = 11;
-
-enum class GuessMode {
-    Binary,
-    Randomized
-};
-
-struct GameSnapshot {
-    int low;
-    int high;
-    int attempts;
-    int last_guess;
-};
+constexpr int kBaslangicAlt = 1;
+constexpr int kBaslangicUst = 1000;
+constexpr int kTeorikAdimLimiti = 11;
 
 const char* logo() {
     return R"(
@@ -35,8 +24,8 @@ const char* logo() {
 )";
 }
 
-char normalize_hint(const std::string& input) {
-    for (char ch : input) {
+char ilk_karakter(const std::string& metin) {
+    for (char ch : metin) {
         if (!std::isspace(static_cast<unsigned char>(ch))) {
             return static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
         }
@@ -44,65 +33,36 @@ char normalize_hint(const std::string& input) {
     return '\0';
 }
 
-int next_guess_randomized(int low, int high, std::mt19937& rng, int last_guess) {
-    int mid = mind_reader::next_guess(low, high);
-    int span = high - low + 1;
-    if (span <= 3) {
-        return mid;
-    }
-
-    int jitter_limit = std::max(1, span / 6);
-    std::uniform_int_distribution<int> jitter(-jitter_limit, jitter_limit);
-    int guess = std::clamp(mid + jitter(rng), low, high);
-
-    if (span > 1 && guess == last_guess) {
-        guess = (guess < high) ? guess + 1 : guess - 1;
-    }
-    return guess;
-}
-
-bool prompt_mode(GuessMode& mode) {
+char secim_al(const std::string& soru, const std::string& izinli) {
     while (true) {
-        std::cout << "Mod seçimi: [1] Klasik İkili Arama (en hızlı), "
-                  << "[2] Rastgele Pivot (daha sürprizli, önerilen): ";
-
-        std::string input;
-        if (!std::getline(std::cin, input)) {
-            return false;
+        std::cout << soru;
+        std::string giris;
+        if (!std::getline(std::cin, giris)) {
+            return '\0';
         }
-
-        char choice = normalize_hint(input);
-        if (choice == '\0' || choice == '2') {
-            mode = GuessMode::Randomized;
-            return true;
+        char secim = ilk_karakter(giris);
+        if (izinli.find(secim) != std::string::npos) {
+            return secim;
         }
-        if (choice == '1') {
-            mode = GuessMode::Binary;
-            return true;
-        }
-
-        std::cout << "Geçersiz seçim. Lütfen 1 veya 2 gir.\n";
+        std::cout << "Geçersiz giriş. Tekrar dene.\n";
     }
 }
 
-bool prompt_hint(int guess, char& hint) {
-    while (true) {
-        std::cout << "Tahminim " << guess
-                  << ". Daha büyükse [b], daha küçükse [k], doğruysa [d], "
-                     "geri almak için [u]: ";
-
-        std::string input;
-        if (!std::getline(std::cin, input)) {
-            return false;
-        }
-
-        hint = normalize_hint(input);
-        if (hint == 'u' || mind_reader::is_valid_hint(hint)) {
-            return true;
-        }
-
-        std::cout << "Geçersiz giriş. Lütfen sadece b, k, d veya u kullan.\n";
+int rastgele_tahmin(int alt, int ust, std::mt19937& rng, int onceki) {
+    int orta = mind_reader::next_guess(alt, ust);
+    int genislik = ust - alt + 1;
+    if (genislik <= 3) {
+        return orta;
     }
+
+    int sapma = std::max(1, genislik / 6);
+    std::uniform_int_distribution<int> dagilim(-sapma, sapma);
+    int tahmin = std::clamp(orta + dagilim(rng), alt, ust);
+
+    if (tahmin == onceki && alt != ust) {
+        tahmin = (tahmin < ust) ? tahmin + 1 : tahmin - 1;
+    }
+    return tahmin;
 }
 
 }  // namespace
@@ -112,85 +72,79 @@ int main() {
     std::cout << "Aklından 1 ile 1000 arasında bir sayı tut. Bana söyleme.\n";
     std::cout << "Hazırsan ENTER'a bas: ";
 
-    std::string dummy;
-    if (!std::getline(std::cin, dummy)) {
+    std::string satir;
+    if (!std::getline(std::cin, satir)) {
         std::cout << "\nGiriş sonlandı. Oyun kapatılıyor.\n";
         return 0;
     }
 
-    GuessMode mode = GuessMode::Randomized;
-    if (!prompt_mode(mode)) {
+    char mod = secim_al(
+        "Mod seçimi: [1] Klasik İkili Arama, [2] Rastgele Pivot (önerilen): ",
+        "12");
+    if (mod == '\0') {
         std::cout << "\nGiriş sonlandı. Oyun kapatılıyor.\n";
         return 0;
     }
 
-    int low = kLowerBound;
-    int high = kUpperBound;
-    int attempts = 0;
-    int last_guess = -1;
-    std::vector<GameSnapshot> history;
+    int alt = kBaslangicAlt;
+    int ust = kBaslangicUst;
+    int adim = 0;
+    int onceki_tahmin = -1;
+    std::vector<std::tuple<int, int, int, int>> gecmis;
 
     std::random_device rd;
     std::mt19937 rng(rd());
 
     while (true) {
-        if (low > high) {
-            std::cout << "\nVerdiğin ipuçları birbiriyle çelişti. Bu aralıkta sayı kalmadı.\n";
-            std::cout << "Oyunu yeniden başlatıp tekrar deneyelim.\n";
+        if (alt > ust) {
+            std::cout << "\nİpuçların çelişti, bu aralıkta sayı kalmadı.\n";
             return 0;
         }
 
-        int guess = (mode == GuessMode::Binary)
-                        ? mind_reader::next_guess(low, high)
-                        : next_guess_randomized(low, high, rng, last_guess);
-        last_guess = guess;
+        int tahmin = (mod == '1') ? mind_reader::next_guess(alt, ust)
+                                  : rastgele_tahmin(alt, ust, rng, onceki_tahmin);
+        onceki_tahmin = tahmin;
 
-        char hint = '\0';
-        if (!prompt_hint(guess, hint)) {
+        char yanit = secim_al(
+            "Tahminim " + std::to_string(tahmin) +
+                ". Büyükse [b], küçükse [k], doğruysa [d], geri almak için [u]: ",
+            "bkdu");
+        if (yanit == '\0') {
             std::cout << "\nGiriş sonlandı. Oyun kapatılıyor.\n";
             return 0;
         }
 
-        if (hint == 'u') {
-            if (history.empty()) {
-                std::cout << "Geri alınacak önceki adım yok.\n";
+        if (yanit == 'u') {
+            if (gecmis.empty()) {
+                std::cout << "Geri alınacak adım yok.\n";
             } else {
-                GameSnapshot previous = history.back();
-                history.pop_back();
-                low = previous.low;
-                high = previous.high;
-                attempts = previous.attempts;
-                last_guess = previous.last_guess;
+                auto [eski_alt, eski_ust, eski_adim, eski_tahmin] = gecmis.back();
+                gecmis.pop_back();
+                alt = eski_alt;
+                ust = eski_ust;
+                adim = eski_adim;
+                onceki_tahmin = eski_tahmin;
                 std::cout << "Son adım geri alındı.\n";
             }
             continue;
         }
 
-        attempts++;
-        if (hint == 'd') {
-            std::cout << "\nBuldum! Tuttuğun sayı " << guess << ". "
-                      << attempts << " tahminde yakaladım.\n";
-            if (mode == GuessMode::Binary && attempts <= kTheoreticalMaxSteps) {
-                std::cout << "İşte ikili arama gücü: minimuma yakın adımla sonuç.\n";
-            } else if (mode == GuessMode::Randomized) {
-                std::cout << "Rastgele pivot modu ile daha sürprizli bir akışta buldum.\n";
+        adim++;
+        if (yanit == 'd') {
+            std::cout << "\nBuldum! Tuttuğun sayı " << tahmin << ". "
+                      << adim << " tahminde yakaladım.\n";
+            if (mod == '1' && adim <= kTeorikAdimLimiti) {
+                std::cout << "İkili arama ile minimuma yakın adımda sonuç.\n";
+            }
+            if (mod == '2') {
+                std::cout << "Rastgele pivot ile daha sürprizli akış.\n";
             }
             return 0;
         }
 
-        history.push_back({low, high, attempts - 1, last_guess});
-
-        try {
-            mind_reader::Range updated = mind_reader::update_range(low, high, guess, hint);
-            low = updated.low;
-            high = updated.high;
-        } catch (const std::invalid_argument&) {
-            std::cout << "\nGeçersiz bir ipucu algılandı. Oyun bitiyor.\n";
-            return 0;
-        } catch (const std::logic_error&) {
-            std::cout << "\nHey, ipuçları birbiriyle uyuşmuyor.\n";
-            std::cout << "Bu akışta geçerli bir sayı kalmadı. Oyun bitiyor.\n";
-            return 0;
-        }
+        gecmis.push_back({alt, ust, adim - 1, onceki_tahmin});
+        mind_reader::Range yeni = mind_reader::apply_hint(alt, ust, tahmin, yanit);
+        alt = yeni.low;
+        ust = yeni.high;
     }
 }

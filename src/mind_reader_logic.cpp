@@ -10,21 +10,12 @@ bool is_valid_hint(char hint) {
     return hint == 'b' || hint == 'k' || hint == 'd';
 }
 
-Range update_range(int low, int high, int guess, char hint) {
-    if (!is_valid_hint(hint)) {
-        throw std::invalid_argument("Geçersiz ipucu. Sadece b/k/d kullan.");
-    }
-
+Range apply_hint(int low, int high, int guess, char hint) {
     if (hint == 'b') {
         low = guess + 1;
     } else if (hint == 'k') {
         high = guess - 1;
     }
-
-    if (low > high) {
-        throw std::logic_error("Tutarsız ipucu: Bu aralıkta sayı kalmadı.");
-    }
-
     return {low, high};
 }
 
