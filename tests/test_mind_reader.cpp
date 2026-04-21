@@ -20,24 +20,24 @@ void test_next_guess_returns_midpoint() {
 }
 
 void test_update_range_for_higher_hint() {
-    mind_reader::Range r = mind_reader::update_range(1, 1000, 500, 'y');
+    mind_reader::Range r = mind_reader::update_range(1, 1000, 500, 'b');
     expect_true(r.low == 501 && r.high == 1000, "higher hint should move low to guess + 1");
 }
 
 void test_update_range_for_lower_hint() {
-    mind_reader::Range r = mind_reader::update_range(1, 1000, 500, 'a');
+    mind_reader::Range r = mind_reader::update_range(1, 1000, 500, 'k');
     expect_true(r.low == 1 && r.high == 499, "lower hint should move high to guess - 1");
 }
 
 void test_update_range_for_exact_hint() {
-    mind_reader::Range r = mind_reader::update_range(1, 1000, 500, 'e');
+    mind_reader::Range r = mind_reader::update_range(1, 1000, 500, 'd');
     expect_true(r.low == 1 && r.high == 1000, "exact hint should keep range unchanged");
 }
 
 void test_inconsistent_hints_raise_error() {
     bool threw = false;
     try {
-        (void)mind_reader::update_range(500, 500, 500, 'y');
+        (void)mind_reader::update_range(500, 500, 500, 'b');
     } catch (const std::logic_error&) {
         threw = true;
     }

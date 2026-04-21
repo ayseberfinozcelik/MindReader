@@ -7,17 +7,17 @@ int next_guess(int low, int high) {
 }
 
 bool is_valid_hint(char hint) {
-    return hint == 'y' || hint == 'a' || hint == 'e';
+    return hint == 'b' || hint == 'k' || hint == 'd';
 }
 
 Range update_range(int low, int high, int guess, char hint) {
     if (!is_valid_hint(hint)) {
-        throw std::invalid_argument("Gecersiz ipucu. Sadece y/a/e kullan.");
+        throw std::invalid_argument("Gecersiz ipucu. Sadece b/k/d kullan.");
     }
 
-    if (hint == 'y') {
+    if (hint == 'b') {
         low = guess + 1;
-    } else if (hint == 'a') {
+    } else if (hint == 'k') {
         high = guess - 1;
     }
 

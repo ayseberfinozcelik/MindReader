@@ -32,7 +32,7 @@ char normalize_hint(const std::string& input) {
 bool prompt_hint(int guess, char& hint) {
     while (true) {
         std::cout << "Tahminim " << guess
-                  << ". Tuttugun sayi daha buyukse [y], daha kucukse [a], dogruysa [e]: ";
+                  << ". Tuttugun sayi daha buyukse [b], daha kucukse [k], dogruysa [d]: ";
 
         std::string input;
         if (!std::getline(std::cin, input)) {
@@ -44,7 +44,7 @@ bool prompt_hint(int guess, char& hint) {
             return true;
         }
 
-        std::cout << "Gecersiz giris. Lutfen sadece y, a veya e kullan.\n";
+        std::cout << "Gecersiz giris. Lutfen sadece b, k veya d kullan.\n";
     }
 }
 
@@ -82,7 +82,7 @@ int main() {
             return 0;
         }
 
-        if (hint == 'e') {
+        if (hint == 'd') {
             std::cout << "\nBuldum! Sayin " << guess << ". "
                       << attempts << " tahminde yakaladim.\n";
             if (attempts <= kTheoreticalMaxSteps) {
